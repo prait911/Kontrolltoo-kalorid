@@ -1,16 +1,37 @@
+"""Simple calculator script using different formulas for calculating the calories needed daily based on the user needs."""
+
 from tkinter import *
-import os
 import csv
+import random
 
-def arvuta_bmr():
+def HelperFunction(energy: int) -> tuple:
+    """Picks random foods and makes their calories match the energy needed daily. Returns them as a tuple"""
+    """:return: Returns the selected foods with their calories as a tuple"""
+    with open("toit_andmed.csv", mode="r", encoding="utf-8") as file:
+        cFile = csv.reader(file)
+        next(cFile)
+        foods = [(row[0], int(row[1])) for row in cFile]
+
+    total_calories = 0
+    selected_foods = []
+
+    while total_calories <= energy and foods:
+        food, calories = random.choice(foods)
+        if total_calories + calories <= energy:
+            selected_foods.append((food, calories))
+            total_calories += calories
+        foods.remove((food, calories))
+
+    return selected_foods 
+
+def arvuta_bmr() -> None:
+    """Function to calculate the kcal needed daily for a user."""
     try:
-        kaal = float(kaal_entry.get())
-        pikkus = float(pikkus_entry.get())
-        vanus = int(vanus_entry.get())
-        sugu = sugu_var.get()
-        aktiivsus_tase = aktiivsus_var.get()
-
-
+        kaal = float(kaal_entry.get()) #float
+        pikkus = float(pikkus_entry.get()) #float
+        vanus = int(vanus_entry.get()) #int
+        sugu = sugu_var.get() #str
+        aktiivsus_tase = aktiivsus_var.get() #str
 
         if sugu == "Mees":
             bmr = 88.36 + (13.4 * kaal) + (4.8 * pikkus) - (5.7 * vanus)
@@ -26,14 +47,20 @@ def arvuta_bmr():
         }
 
         bmr_aktiivsus = bmr * aktiivsus_kordaja[aktiivsus_tase]
+        sel_food = HelperFunction(int(bmr_aktiivsus))
 
-        tulemus_label.config(text=f"Päevane kalorivajadus: {round(bmr_aktiivsus)} kcal")
+        stringt = ""
+        for i in sel_food:
+            stringt += f"Toit: {i[0]} ja kaloreid: {i[1]}, "
+
+        tulemus_label.config(text=f"Päevane kalorivajadus: {round(bmr_aktiivsus)} kcal. Soovitatavad toidud mida tarbida: \n {stringt} ")
     except Exception as e:
         tulemus_label.config(text="Palun sisesta korrektsed andmed!")
 
+# Praidi pooleldi tehtud GUI
 raam = Tk()
 raam.title("Kalorite Kalkulaator")
-raam.geometry("400x500")
+raam.geometry("400x600")
 raam.configure(bg="lightblue")
 
 pealkiri_label = Label(raam, text="BMR Kalkulaator", font=("Calibri", 16), bg="lightblue")
@@ -71,24 +98,7 @@ aktiivsus_valik.pack()
 arvuta_nupp = Button(raam, text="Arvuta", font=("Calibri", 12), command=arvuta_bmr)
 arvuta_nupp.pack(pady=12)
 
-tulemus_label = Label(raam, text="", font=("Calibri", 12), bg="lightblue")
+tulemus_label = Label(raam, text="", font=("Calibri", 12), bg="lightblue", wraplength=300, justify="center")
 tulemus_label.pack(pady=10)
 
-
-kaust = "andmed"
-faili_nimi = os.path.join(kaust, "toit_kalorid.csv")
-
-with open(filename, 'r') as csvfile:
-    csvreader = csv.reader(csvfile)
-        for line in csvreader:
-
-
-if not os.path.exists(kaust):
-    os.makedirs(kaust)
-
-
-
-
-
 raam.mainloop()
-
